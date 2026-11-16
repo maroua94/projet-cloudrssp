@@ -11,7 +11,7 @@
 <body>
 <nav><div>
   <a href="#architecture">Architecture</a><a href="#outils">Mes outils</a><a href="#pipeline">Pipeline</a>
-  <a href="#supervision">Supervision</a><a href="#securite">Sécurité</a><a href="#problemes">Ce qui a coincé</a><a href="#suite">La suite</a>
+  <a href="#epreuve">Mise à l'épreuve</a><a href="#supervision">Supervision</a><a href="#securite">Sécurité</a><a href="#problemes">Ce qui a coincé</a><a href="#suite">La suite</a>
 </div></nav>
 
 <div class="wrap">
@@ -29,6 +29,7 @@
   <li class="card"><div class="n">2 → 0</div><div class="l"><span class="dot"></span>vulnérabilité HIGH</div></li>
   <li class="card"><div class="n">2/2</div><div class="l"><span class="dot"></span>cibles Prometheus UP</div></li>
   <li class="card"><div class="n">1</div><div class="l"><span class="dot"></span>agent Wazuh actif</div></li>
+  <li class="card"><div class="n">3/3</div><div class="l"><span class="dot"></span>échecs provoqués bloqués</div></li>
 </ul>
 
 <section id="architecture">
@@ -62,7 +63,7 @@
     <li class="card"><span class="no">04</span><h3>Scan image</h3><p>Trivy, sévérités HIGH et CRITICAL.</p><span class="res">0 vulnérabilité</span></li>
     <li class="card"><span class="no">05</span><h3>Déploiement</h3><p>Contrôle de santé, puis retour automatique à la version précédente si ça échoue.</p><span class="res">conteneur healthy</span></li>
   </ol>
-  <div class="note">Le retour automatique est écrit dans le Jenkinsfile, mais je ne l'ai pas encore testé avec un échec volontaire.</div>
+  <div class="note">Le retour automatique a été éprouvé avec un échec volontaire : voir la section suivante.</div>
   <div class="two">
     <div class="card"><div class="tag">avant / après · trivy</div><p>Trivy avait trouvé 2 vulnérabilités HIGH sur <code>zlib1g</code>. Je les ai corrigées en mettant le paquet à jour dans le Dockerfile : il en reste 0.</p></div>
     <div class="card"><pre>[Tests]    2 passed
@@ -74,6 +75,31 @@ Finished: SUCCESS</pre></div>
   <div class="shots">
     <figure><img src="img/jenkins-build.png" alt="Build Jenkins numéro 2 réussi"><figcaption>Build Jenkins #2 réussi</figcaption></figure>
     <figure><img src="img/trivy-avant.png" alt="Résultat Trivy avant correction avec 2 vulnérabilités HIGH"><figcaption>Scan Trivy avant correction : 2 HIGH sur zlib1g</figcaption></figure>
+  </div>
+</section>
+
+<section id="epreuve">
+  <div class="tag">// mise à l'épreuve</div>
+  <h2>Trois échecs provoqués exprès</h2>
+  <p>Un pipeline qu'on n'a jamais vu échouer ne prouve rien. J'ai donc cassé le projet trois fois, volontairement, pour vérifier que chaque garde-fou se déclenche.</p>
+
+  <div class="two">
+    <div class="card"><div class="tag">1 · test cassé</div><h3>Tests : arrêt immédiat</h3><p>J'ai changé la réponse de <code>/health</code> de « ok » à « ko ». Le test <code>test_health</code> échoue, le build #4 devient rouge et les quatre étapes suivantes ne s'exécutent pas.</p></div>
+    <div class="card"><div class="tag">2 · faux secret</div><h3>Gitleaks : le secret est repéré</h3><p>J'ai ajouté un faux fichier <code>demo_secret.py</code> contenant une fausse clé d'API. Gitleaks la détecte (règle <code>generic-api-key</code>), masque sa valeur et bloque le build #6.</p></div>
+  </div>
+  <div class="shots">
+    <figure><img src="img/echec-tests-vue.png" alt="Build 4 rouge à l'étape Tests"><figcaption>Build #4 : rouge à l'étape Tests, le reste est sauté</figcaption></figure>
+    <figure><img src="img/echec-tests-log.png" alt="Journal du test en échec"><figcaption>Journal : test_health échoue, « ko » au lieu de « ok »</figcaption></figure>
+    <figure><img src="img/echec-secret-vue.png" alt="Build 6 rouge à l'étape Gitleaks"><figcaption>Build #6 : Tests en vert, rouge à l'étape Secrets</figcaption></figure>
+    <figure><img src="img/echec-secret-log.png" alt="Détection du faux secret par Gitleaks"><figcaption>Gitleaks : generic-api-key détectée, valeur masquée</figcaption></figure>
+  </div>
+
+  <div class="card" style="margin-top:22px"><div class="tag">3 · déploiement raté</div><h3>Retour automatique à la version précédente</h3>
+    <p>J'ai changé l'adresse du HEALTHCHECK dans le Dockerfile (<code>/healthz</code>, qui n'existe pas). Les tests, Gitleaks et Trivy passent, mais le conteneur déployé reste « unhealthy ». Après 20 contrôles, le pipeline supprime la nouvelle version, relance l'ancienne image et s'arrête en erreur. Pendant ce temps, l'application a continué de répondre.</p></div>
+  <div class="shots">
+    <figure><img src="img/rollback-vue.png" alt="Build 8 en échec à l'étape Deploy"><figcaption>Build #8 : tout est vert sauf Deploy + rollback</figcaption></figure>
+    <figure><img src="img/rollback-log.png" alt="Journal du rollback"><figcaption>Journal : « Health check FAILED - rollback », l'ancienne image est relancée</figcaption></figure>
+    <figure><img src="img/retour-vert.png" alt="Build 9 entièrement vert"><figcaption>Build #9 : après correction, tout repasse au vert</figcaption></figure>
   </div>
 </section>
 
@@ -123,8 +149,8 @@ Finished: SUCCESS</pre></div>
   <div class="tag">// la suite</div>
   <h2>Ce qui est fait, ce qu'il me reste à faire</h2>
   <div class="road">
-    <div class="card done"><h3>Ce qui est fait</h3><ul><li>Pipeline CI/CD</li><li>Contrôles DevSecOps (tests, secrets, scan)</li><li>Supervision Prometheus et Grafana</li><li>Détection Wazuh</li><li>Ce portail</li></ul></div>
-    <div class="card todo"><h3>Ce qu'il me reste à faire</h3><ul><li>Déploiement sur AWS avec Terraform</li><li>Test du retour automatique par un échec volontaire</li><li>Remplacer chmod 666 par le groupe docker</li><li>Mettre à jour Jenkins et ses plugins</li><li>README complet sur GitHub</li></ul></div>
+    <div class="card done"><h3>Ce qui est fait</h3><ul><li>Pipeline CI/CD</li><li>Contrôles DevSecOps (tests, secrets, scan)</li><li>Supervision Prometheus et Grafana</li><li>Détection Wazuh</li><li>Mise à l'épreuve : test cassé, faux secret, retour automatique</li><li>Ce portail</li></ul></div>
+    <div class="card todo"><h3>Ce qu'il me reste à faire</h3><ul><li>Déploiement sur AWS avec Terraform</li><li>Remplacer chmod 666 par le groupe docker</li><li>Mettre à jour Jenkins et ses plugins</li><li>README complet sur GitHub</li></ul></div>
   </div>
 </section>
 
