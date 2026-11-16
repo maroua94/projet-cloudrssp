@@ -32,9 +32,7 @@ pipeline {
             steps {
                 sh '''
                     docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v trivy-cache:/root/.cache/ \
-                        aquasec/trivy:0.74.0 image --severity HIGH,CRITICAL --ignore-unfixed --exit-code 0 mon-app:${BUILD_NUMBER}
-                    docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v trivy-cache:/root/.cache/ \
-                        aquasec/trivy:0.74.0 image --severity CRITICAL --ignore-unfixed --exit-code 1 mon-app:${BUILD_NUMBER}
+                        aquasec/trivy:0.74.0 image --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 mon-app:${BUILD_NUMBER}
                 '''
             }
         }
