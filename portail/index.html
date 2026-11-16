@@ -73,8 +73,8 @@
 Finished: SUCCESS</pre></div>
   </div>
   <div class="shots">
-    <figure><img src="img/jenkins-build.png" alt="Build Jenkins numéro 2 réussi"><figcaption>Build Jenkins #2 réussi</figcaption></figure>
-    <figure><img src="img/trivy-avant.png" alt="Résultat Trivy avant correction avec 2 vulnérabilités HIGH"><figcaption>Scan Trivy avant correction : 2 HIGH sur zlib1g</figcaption></figure>
+    <figure><a href="img/jenkins-build.png" target="_blank" rel="noopener" title="Ouvrir en taille réelle"><img src="img/jenkins-build.png" alt="Build Jenkins numéro 2 réussi" loading="lazy"></a><figcaption>Build Jenkins #2 réussi</figcaption></figure>
+    <figure><a href="img/trivy-avant.png" target="_blank" rel="noopener" title="Ouvrir en taille réelle"><img src="img/trivy-avant.png" alt="Résultat Trivy avant correction avec 2 vulnérabilités HIGH" loading="lazy"></a><figcaption>Scan Trivy avant correction : 2 HIGH sur zlib1g</figcaption></figure>
   </div>
 </section>
 
@@ -88,18 +88,18 @@ Finished: SUCCESS</pre></div>
     <div class="card"><div class="tag">2 · faux secret</div><h3>Gitleaks : le secret est repéré</h3><p>J'ai ajouté un faux fichier <code>demo_secret.py</code> contenant une fausse clé d'API. Gitleaks la détecte (règle <code>generic-api-key</code>), masque sa valeur et bloque le build #6.</p></div>
   </div>
   <div class="shots">
-    <figure><img src="img/echec-tests-vue.png" alt="Build 4 rouge à l'étape Tests"><figcaption>Build #4 : rouge à l'étape Tests, le reste est sauté</figcaption></figure>
-    <figure><img src="img/echec-tests-log.png" alt="Journal du test en échec"><figcaption>Journal : test_health échoue, « ko » au lieu de « ok »</figcaption></figure>
-    <figure><img src="img/echec-secret-vue.png" alt="Build 6 rouge à l'étape Gitleaks"><figcaption>Build #6 : Tests en vert, rouge à l'étape Secrets</figcaption></figure>
-    <figure><img src="img/echec-secret-log.png" alt="Détection du faux secret par Gitleaks"><figcaption>Gitleaks : generic-api-key détectée, valeur masquée</figcaption></figure>
+    <figure><a href="img/echec-tests-vue.png" target="_blank" rel="noopener" title="Ouvrir en taille réelle"><img src="img/echec-tests-vue.png" alt="Build 4 rouge à l'étape Tests" loading="lazy"></a><figcaption>Build #4 : rouge à l'étape Tests, le reste est sauté</figcaption></figure>
+    <figure><a href="img/echec-tests-log.png" target="_blank" rel="noopener" title="Ouvrir en taille réelle"><img src="img/echec-tests-log.png" alt="Journal du test en échec" loading="lazy"></a><figcaption>Journal : test_health échoue, « ko » au lieu de « ok »</figcaption></figure>
+    <figure><a href="img/echec-secret-vue.png" target="_blank" rel="noopener" title="Ouvrir en taille réelle"><img src="img/echec-secret-vue.png" alt="Build 6 rouge à l'étape Gitleaks" loading="lazy"></a><figcaption>Build #6 : Tests en vert, rouge à l'étape Secrets</figcaption></figure>
+    <figure><a href="img/echec-secret-log.png" target="_blank" rel="noopener" title="Ouvrir en taille réelle"><img src="img/echec-secret-log.png" alt="Détection du faux secret par Gitleaks" loading="lazy"></a><figcaption>Gitleaks : generic-api-key détectée, valeur masquée</figcaption></figure>
   </div>
 
   <div class="card" style="margin-top:22px"><div class="tag">3 · déploiement raté</div><h3>Retour automatique à la version précédente</h3>
     <p>J'ai changé l'adresse du HEALTHCHECK dans le Dockerfile (<code>/healthz</code>, qui n'existe pas). Les tests, Gitleaks et Trivy passent, mais le conteneur déployé reste « unhealthy ». Après 20 contrôles, le pipeline supprime la nouvelle version, relance l'ancienne image et s'arrête en erreur. Pendant ce temps, l'application a continué de répondre.</p></div>
   <div class="shots">
-    <figure><img src="img/rollback-vue.png" alt="Build 8 en échec à l'étape Deploy"><figcaption>Build #8 : tout est vert sauf Deploy + rollback</figcaption></figure>
-    <figure><img src="img/rollback-log.png" alt="Journal du rollback"><figcaption>Journal : « Health check FAILED - rollback », l'ancienne image est relancée</figcaption></figure>
-    <figure><img src="img/retour-vert.png" alt="Build 9 entièrement vert"><figcaption>Build #9 : après correction, tout repasse au vert</figcaption></figure>
+    <figure><a href="img/rollback-vue.png" target="_blank" rel="noopener" title="Ouvrir en taille réelle"><img src="img/rollback-vue.png" alt="Build 8 en échec à l'étape Deploy" loading="lazy"></a><figcaption>Build #8 : tout est vert sauf Deploy + rollback</figcaption></figure>
+    <figure><a href="img/rollback-log.png" target="_blank" rel="noopener" title="Ouvrir en taille réelle"><img src="img/rollback-log.png" alt="Journal du rollback" loading="lazy"></a><figcaption>Journal : « Health check FAILED - rollback », l'ancienne image est relancée</figcaption></figure>
+    <figure><a href="img/retour-vert.png" target="_blank" rel="noopener" title="Ouvrir en taille réelle"><img src="img/retour-vert.png" alt="Build 9 entièrement vert" loading="lazy"></a><figcaption>Build #9 : après correction, tout repasse au vert</figcaption></figure>
   </div>
 </section>
 
@@ -108,9 +108,9 @@ Finished: SUCCESS</pre></div>
   <h2>Voir l'état de la machine en direct</h2>
   <p>Prometheus (v2.55.1) interroge Node Exporter toutes les 15 secondes. Grafana affiche ces mesures dans le tableau « Node Exporter Full » (ID 1860).</p>
   <div class="shots">
-    <figure><img src="img/prometheus-cibles.png" alt="Cibles Prometheus toutes UP"><figcaption>Cibles Prometheus : 2/2 UP</figcaption></figure>
-    <figure><img src="img/grafana-dashboard.png" alt="Tableau de bord Grafana Node Exporter Full"><figcaption>Tableau Node Exporter Full</figcaption></figure>
-    <figure><img src="img/github-monitoring.png" alt="Dossier monitoring du dépôt GitHub"><figcaption>Dossier monitoring du dépôt GitHub</figcaption></figure>
+    <figure><a href="img/prometheus-cibles.png" target="_blank" rel="noopener" title="Ouvrir en taille réelle"><img src="img/prometheus-cibles.png" alt="Cibles Prometheus toutes UP" loading="lazy"></a><figcaption>Cibles Prometheus : 2/2 UP</figcaption></figure>
+    <figure><a href="img/grafana-dashboard.png" target="_blank" rel="noopener" title="Ouvrir en taille réelle"><img src="img/grafana-dashboard.png" alt="Tableau de bord Grafana Node Exporter Full" loading="lazy"></a><figcaption>Tableau Node Exporter Full</figcaption></figure>
+    <figure><a href="img/github-monitoring.png" target="_blank" rel="noopener" title="Ouvrir en taille réelle"><img src="img/github-monitoring.png" alt="Dossier monitoring du dépôt GitHub" loading="lazy"></a><figcaption>Dossier monitoring du dépôt GitHub</figcaption></figure>
   </div>
 </section>
 
@@ -126,9 +126,9 @@ Finished: SUCCESS</pre></div>
     </table>
   </div>
   <div class="shots">
-    <figure><img src="img/wazuh-agent.png" alt="Agent Wazuh actif"><figcaption>Agent Wazuh actif</figcaption></figure>
-    <figure><img src="img/wazuh-alertes.png" alt="Alertes des règles 5710 et 5712"><figcaption>Alertes des règles 5710 et 5712</figcaption></figure>
-    <figure><img src="img/wazuh-apercu.png" alt="Aperçu des événements de sécurité"><figcaption>Aperçu des événements de sécurité</figcaption></figure>
+    <figure><a href="img/wazuh-agent.png" target="_blank" rel="noopener" title="Ouvrir en taille réelle"><img src="img/wazuh-agent.png" alt="Agent Wazuh actif" loading="lazy"></a><figcaption>Agent Wazuh actif</figcaption></figure>
+    <figure><a href="img/wazuh-alertes.png" target="_blank" rel="noopener" title="Ouvrir en taille réelle"><img src="img/wazuh-alertes.png" alt="Alertes des règles 5710 et 5712" loading="lazy"></a><figcaption>Alertes des règles 5710 et 5712</figcaption></figure>
+    <figure><a href="img/wazuh-apercu.png" target="_blank" rel="noopener" title="Ouvrir en taille réelle"><img src="img/wazuh-apercu.png" alt="Aperçu des événements de sécurité" loading="lazy"></a><figcaption>Aperçu des événements de sécurité</figcaption></figure>
   </div>
 </section>
 
