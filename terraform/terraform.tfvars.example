@@ -1,0 +1,4 @@
+# Copie ce fichier en terraform.tfvars puis adapte-le. terraform.tfvars n'est jamais envoye sur GitHub.
+allowed_cidrs = ["196.74.105.107/32"]  # ajoute ici les IP de l'equipe, une par ligne, en /32
+# ssh_public_key = "ssh-ed25519 AAAA... maroua"
+# grafana_admin_password : ne l'ecris pas ici, passe-le par la variable d'environnement TF_VAR_grafana_admin_password

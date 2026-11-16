@@ -1,0 +1,85 @@
+#!/bin/bash
+# Installation automatique de la plateforme (premier demarrage uniquement).
+# Journal : /var/log/plateforme-install.log
+exec > >(tee -a /var/log/plateforme-install.log) 2>&1
+set -x
+export DEBIAN_FRONTEND=noninteractive
+
+echo "== 1. Systeme =="
+apt-get update -y
+apt-get install -y git curl ca-certificates
+sysctl -w vm.max_map_count=262144
+echo "vm.max_map_count=262144" > /etc/sysctl.d/99-wazuh.conf
+
+echo "== 2. Docker =="
+curl -fsSL https://get.docker.com | sh
+systemctl enable --now docker
+
+echo "== 3. Code du projet =="
+cd /opt
+git clone ${repo_url} projet
+cd /opt/projet
+
+echo "== 4. Portail =="
+docker build -t portail ./portail
+docker run -d --name portail --restart unless-stopped -p 80:80 portail
+
+echo "== 5. Application =="
+docker build -t mon-app .
+docker run -d --name mon-app --restart unless-stopped -p 5000:5000 mon-app
+
+echo "== 6. Prometheus et Node Exporter =="
+docker compose -f /opt/projet/monitoring/docker-compose.yml up -d
+PROM_ID=$(docker compose -f /opt/projet/monitoring/docker-compose.yml ps -q prometheus)
+NET=$(docker inspect "$PROM_ID" --format '{{range $k, $v := .NetworkSettings.Networks}}{{$k}}{{end}}')
+
+echo "== 7. Grafana =="
+mkdir -p /opt/grafana/provisioning/datasources
+cat > /opt/grafana/provisioning/datasources/prometheus.yml <<'YAML'
+apiVersion: 1
+datasources:
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+YAML
+set +x
+printf 'GF_SECURITY_ADMIN_PASSWORD=%s\n' '${grafana_password}' > /opt/grafana/grafana.env
+chmod 600 /opt/grafana/grafana.env
+set -x
+docker run -d --name grafana --restart unless-stopped --network "$NET" -p 3000:3000 \
+  --env-file /opt/grafana/grafana.env \
+  -v grafana-data:/var/lib/grafana \
+  -v /opt/grafana/provisioning:/etc/grafana/provisioning \
+  grafana/grafana:latest
+
+echo "== 8. Jenkins (avec le client Docker) =="
+mkdir -p /opt/jenkins
+cat > /opt/jenkins/Dockerfile <<'DOCKERFILE'
+FROM jenkins/jenkins:lts
+USER root
+RUN apt-get update \
+ && (apt-get install -y --no-install-recommends docker-cli || apt-get install -y --no-install-recommends docker.io) \
+ && rm -rf /var/lib/apt/lists/*
+USER jenkins
+DOCKERFILE
+docker build -t jenkins-docker /opt/jenkins
+DOCKER_GID=$(getent group docker | cut -d: -f3)
+docker run -d --name jenkins --restart unless-stopped -p 8080:8080 \
+  --group-add "$DOCKER_GID" \
+  -v jenkins_home:/var/jenkins_home \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  jenkins-docker
+docker pull zricethezav/gitleaks:v8.28.0
+docker pull aquasec/trivy:0.74.0
+
+echo "== 9. Wazuh 4.7.0 (port 443 ferme tant que wazuh_ouvert = false) =="
+cd /opt
+git clone --depth 1 -b v4.7.0 https://github.com/wazuh/wazuh-docker.git
+cd /opt/wazuh-docker/single-node
+docker compose -f generate-indexer-certs.yml run --rm generator
+docker compose up -d
+
+echo "== INSTALLATION TERMINEE =="
+touch /opt/installation-terminee
