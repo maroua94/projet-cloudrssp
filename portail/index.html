@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Plateforme Cloud Sécurisée DevSecOps</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<nav><div>
+  <a href="#architecture">Architecture</a><a href="#outils">Mes outils</a><a href="#pipeline">Pipeline</a>
+  <a href="#supervision">Supervision</a><a href="#securite">Sécurité</a><a href="#problemes">Ce qui a coincé</a><a href="#suite">La suite</a>
+</div></nav>
+
+<div class="wrap">
+<header class="hero">
+  <div class="cmd">$ ./deploy --secure</div>
+  <h1>Plateforme Cloud Sécurisée DevSecOps</h1>
+  <p class="lead">J'ai construit, de A à Z, un pipeline de livraison sécurisé, sa supervision et la détection d'attaques, sur une machine virtuelle Ubuntu. Cette page rassemble tout le projet, et donne accès à chaque outil.</p>
+  <div class="chips"><span class="chip">Vagrant</span><span class="chip">Docker</span><span class="chip">Jenkins</span><span class="chip">Gitleaks</span><span class="chip">Trivy</span><span class="chip">Prometheus</span><span class="chip">Grafana</span><span class="chip">Wazuh</span></div>
+  <div class="btns"><a class="btn main" href="#outils">Ouvrir les outils</a><a class="btn" href="https://github.com/maroua94/projet-cloudrssp">Code sur GitHub</a></div>
+</header>
+
+<ul class="facts">
+  <li class="card"><div class="n">2/2</div><div class="l"><span class="dot"></span>tests réussis</div></li>
+  <li class="card"><div class="n">0</div><div class="l"><span class="dot"></span>secret détecté</div></li>
+  <li class="card"><div class="n">2 → 0</div><div class="l"><span class="dot"></span>vulnérabilité HIGH</div></li>
+  <li class="card"><div class="n">2/2</div><div class="l"><span class="dot"></span>cibles Prometheus UP</div></li>
+  <li class="card"><div class="n">1</div><div class="l"><span class="dot"></span>agent Wazuh actif</div></li>
+</ul>
+
+<section id="architecture">
+  <div class="tag">// architecture</div>
+  <h2>Comment tout s'articule</h2>
+  <p>Tout tourne dans une seule machine virtuelle. Mon code part de GitHub, Jenkins le teste et le déploie dans Docker, pendant que Prometheus et Wazuh surveillent la machine.</p>
+  <div class="node ext">GitHub (extérieur à la VM)</div>
+  <div class="vm">
+    <div class="vm-t">VM Ubuntu 22.04 · Vagrant + VMware</div>
+    <div class="lane" style="--c:#22D3EE"><b>LIVRAISON</b><span class="node">Jenkins</span><span class="ar">→</span><span class="node">Docker</span><span class="ar">→</span><span class="node">Application Flask</span></div>
+    <div class="lane" style="--c:#8B5CF6"><b>SUPERVISION</b><span class="node">Node Exporter</span><span class="ar">→</span><span class="node">Prometheus</span><span class="ar">→</span><span class="node">Grafana</span></div>
+    <div class="lane" style="--c:#FB923C"><b>SÉCURITÉ</b><span class="node">Agent Wazuh</span><span class="ar">→</span><span class="node">Manager</span><span class="ar">→</span><span class="node">Indexer</span><span class="ar">→</span><span class="node">Dashboard</span></div>
+  </div>
+</section>
+
+<section id="outils">
+  <div class="tag">// mes outils</div>
+  <h2>Accéder aux outils</h2>
+  <p>Chaque carte ouvre l'outil sur la même machine que cette page. Le point vert indique qu'il répond. Les connexions restent protégées par leurs propres identifiants.</p>
+  <div class="tools" id="tools"></div>
+</section>
+
+<section id="pipeline">
+  <div class="tag">// pipeline</div>
+  <h2>Un pipeline qui bloque avant de livrer</h2>
+  <p>J'ai voulu qu'aucun code n'arrive en production sans avoir été testé, vérifié pour les secrets oubliés et scanné pour les vulnérabilités.</p>
+  <ol class="st5">
+    <li class="card"><span class="no">01</span><h3>Tests</h3><p>pytest, lancé dans un build Docker multi-stage.</p><span class="res">2/2 réussis</span></li>
+    <li class="card"><span class="no">02</span><h3>Secrets</h3><p>Gitleaks analyse le dépôt.</p><span class="res">0 fuite</span></li>
+    <li class="card"><span class="no">03</span><h3>Build</h3><p>Image multi-stage, utilisateur non-root, HEALTHCHECK.</p><span class="res">image construite</span></li>
+    <li class="card"><span class="no">04</span><h3>Scan image</h3><p>Trivy, sévérités HIGH et CRITICAL.</p><span class="res">0 vulnérabilité</span></li>
+    <li class="card"><span class="no">05</span><h3>Déploiement</h3><p>Contrôle de santé, puis retour automatique à la version précédente si ça échoue.</p><span class="res">conteneur healthy</span></li>
+  </ol>
+  <div class="note">Le retour automatique est écrit dans le Jenkinsfile, mais je ne l'ai pas encore testé avec un échec volontaire.</div>
+  <div class="two">
+    <div class="card"><div class="tag">avant / après · trivy</div><p>Trivy avait trouvé 2 vulnérabilités HIGH sur <code>zlib1g</code>. Je les ai corrigées en mettant le paquet à jour dans le Dockerfile : il en reste 0.</p></div>
+    <div class="card"><pre>[Tests]    2 passed
+[Gitleaks] no leaks found
+[Trivy]    0 vulnerabilities
+[Deploy]   container healthy
+Finished: SUCCESS</pre></div>
+  </div>
+  <div class="shots">
+    <figure><img src="img/jenkins-build.png" alt="Build Jenkins numéro 2 réussi"><figcaption>Build Jenkins #2 réussi</figcaption></figure>
+    <figure><img src="img/trivy-avant.png" alt="Résultat Trivy avant correction avec 2 vulnérabilités HIGH"><figcaption>Scan Trivy avant correction : 2 HIGH sur zlib1g</figcaption></figure>
+  </div>
+</section>
+
+<section id="supervision">
+  <div class="tag">// supervision</div>
+  <h2>Voir l'état de la machine en direct</h2>
+  <p>Prometheus (v2.55.1) interroge Node Exporter toutes les 15 secondes. Grafana affiche ces mesures dans le tableau « Node Exporter Full » (ID 1860).</p>
+  <div class="shots">
+    <figure><img src="img/prometheus-cibles.png" alt="Cibles Prometheus toutes UP"><figcaption>Cibles Prometheus : 2/2 UP</figcaption></figure>
+    <figure><img src="img/grafana-dashboard.png" alt="Tableau de bord Grafana Node Exporter Full"><figcaption>Tableau Node Exporter Full</figcaption></figure>
+    <figure><img src="img/github-monitoring.png" alt="Dossier monitoring du dépôt GitHub"><figcaption>Dossier monitoring du dépôt GitHub</figcaption></figure>
+  </div>
+</section>
+
+<section id="securite">
+  <div class="tag">// sécurité · wazuh 4.7.0</div>
+  <h2>Repérer une attaque quand elle arrive</h2>
+  <p>J'ai simulé une attaque par force brute en SSH contre la machine. Wazuh l'a détectée et l'a associée aux techniques MITRE ATT&amp;CK.</p>
+  <div class="card" style="margin-top:20px">
+    <table>
+      <tr><th>Règle</th><th>Ce qu'elle détecte</th><th>MITRE ATT&amp;CK</th></tr>
+      <tr><td><code>5710</code></td><td>Tentative de connexion avec un utilisateur inexistant</td><td><span class="badge">T1110 · Brute Force</span></td></tr>
+      <tr><td><code>5712</code></td><td>Force brute SSH</td><td><span class="badge">T1110 · Brute Force</span></td></tr>
+    </table>
+  </div>
+  <div class="shots">
+    <figure><img src="img/wazuh-agent.png" alt="Agent Wazuh actif"><figcaption>Agent Wazuh actif</figcaption></figure>
+    <figure><img src="img/wazuh-alertes.png" alt="Alertes des règles 5710 et 5712"><figcaption>Alertes des règles 5710 et 5712</figcaption></figure>
+    <figure><img src="img/wazuh-apercu.png" alt="Aperçu des événements de sécurité"><figcaption>Aperçu des événements de sécurité</figcaption></figure>
+  </div>
+</section>
+
+<section id="problemes">
+  <div class="tag">// journal de débogage</div>
+  <h2>Ce qui a coincé, et comment je l'ai réglé</h2>
+  <div class="card" style="margin-top:18px">
+    <details open><summary><span class="e">ERR_01</span>Build Jenkins « permission denied » sur docker.sock</summary><div class="body"><div class="c"><b>Cause</b>Jenkins n'avait pas le droit d'utiliser le socket Docker.</div><div class="s"><b>Solution</b>chmod temporaire. À remplacer par l'ajout au groupe docker.</div></div></details>
+    <details><summary><span class="e">ERR_02</span>Erreur DNS « server misbehaving »</summary><div class="body"><div class="c"><b>Cause</b>La validation DNSSEC échouait dans systemd-resolved.</div><div class="s"><b>Solution</b>DNSSEC=no et DNS 8.8.8.8 / 1.1.1.1.</div></div></details>
+    <details><summary><span class="e">ERR_03</span>Jenkins ignorait le Jenkinsfile</summary><div class="body"><div class="c"><b>Cause</b>Le job était de type Freestyle.</div><div class="s"><b>Solution</b>Nouveau job « Pipeline from SCM ».</div></div></details>
+    <details><summary><span class="e">ERR_04</span>2 vulnérabilités HIGH sur zlib1g</summary><div class="body"><div class="c"><b>Cause</b>Paquet obsolète dans l'image de base.</div><div class="s"><b>Solution</b>apt-get --only-upgrade zlib1g dans le Dockerfile.</div></div></details>
+    <details><summary><span class="e">ERR_05</span>Grafana : mot de passe refusé</summary><div class="body"><div class="c"><b>Cause</b>Le mot de passe par défaut avait changé.</div><div class="s"><b>Solution</b>grafana cli admin reset-admin-password.</div></div></details>
+    <details><summary><span class="e">ERR_06</span>Accès Jenkins perdu</summary><div class="body"><div class="c"><b>Cause</b>Mot de passe oublié.</div><div class="s"><b>Solution</b>Réinitialisation via config.xml, puis sécurité reconfigurée.</div></div></details>
+  </div>
+</section>
+
+<section id="suite">
+  <div class="tag">// la suite</div>
+  <h2>Ce qui est fait, ce qu'il me reste à faire</h2>
+  <div class="road">
+    <div class="card done"><h3>Ce qui est fait</h3><ul><li>Pipeline CI/CD</li><li>Contrôles DevSecOps (tests, secrets, scan)</li><li>Supervision Prometheus et Grafana</li><li>Détection Wazuh</li><li>Ce portail</li></ul></div>
+    <div class="card todo"><h3>Ce qu'il me reste à faire</h3><ul><li>Déploiement sur AWS avec Terraform</li><li>Test du retour automatique par un échec volontaire</li><li>Remplacer chmod 666 par le groupe docker</li><li>Mettre à jour Jenkins et ses plugins</li><li>README complet sur GitHub</li></ul></div>
+  </div>
+</section>
+
+<footer><span>Projet académique · ENSA Marrakech</span><a href="https://github.com/maroua94/projet-cloudrssp">github.com/maroua94/projet-cloudrssp</a></footer>
+</div>
+
+<script src="config.js"></script>
+<script>
+(function(){
+  var C=window.PORTAIL, host=C.host||location.hostname||"localhost", box=document.getElementById("tools");
+  C.outils.forEach(function(o){
+    var port=(o.proto==="https"&&o.port===443)||(o.proto==="http"&&o.port===80)?"":":"+o.port;
+    var url=o.proto+"://"+host+port+"/";
+    var d=document.createElement("div");d.className="card tool";
+    d.innerHTML='<div class="top"><h3></h3><span class="st">vérification…</span></div><p></p><a class="btn" target="_blank" rel="noopener">Ouvrir '+o.nom+'</a><small></small>';
+    d.querySelector("h3").textContent=o.nom;d.querySelector("p").textContent=o.role;
+    d.querySelector("a").href=url;d.querySelector("small").textContent=url;
+    box.appendChild(d);
+    var st=d.querySelector(".st"),ctl=new AbortController(),t=setTimeout(function(){ctl.abort()},4000);
+    fetch(url,{mode:"no-cors",signal:ctl.signal}).then(function(){st.textContent="disponible";st.className="st up"})
+      .catch(function(){st.textContent=o.proto==="https"?"à ouvrir pour vérifier":"injoignable"}).finally(function(){clearTimeout(t)});
+  });
+})();
+</script>
+</body>
+</html>
