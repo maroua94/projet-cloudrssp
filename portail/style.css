@@ -44,7 +44,8 @@ ol.st5 p{font-size:.92rem;color:var(--mut)}.res{font:.82rem var(--m);color:var(-
 pre{margin:0;font:.88rem/1.7 var(--m);color:var(--ink);overflow-x:auto}
 figure{margin:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--card)}
 figure img{display:block;width:100%;height:auto}figcaption{padding:9px 14px;font-size:.88rem;color:var(--mut)}
-.shots{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;margin-top:20px}
+.shots{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,480px),1fr));gap:18px;margin-top:20px;align-items:start}
+figure a{display:block;cursor:zoom-in}figure a:focus-visible{outline:3px solid var(--cy)}
 table{border-collapse:collapse;width:100%;margin-top:14px;font-size:.95rem}th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line)}
 th{font:.75rem var(--m);letter-spacing:.1em;color:var(--mut);text-transform:uppercase}code{font-family:var(--m);color:var(--cy)}
 .badge{font:.78rem var(--m);padding:3px 10px;border:1px solid #8B5CF688;border-radius:999px;color:#c4b5fd}
