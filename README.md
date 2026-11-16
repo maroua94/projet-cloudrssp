@@ -32,6 +32,18 @@ Trivy avait d'abord trouvé 2 vulnérabilités HIGH sur `zlib1g`. Je les ai corr
 
 ![Build Jenkins réussi](portail/img/jenkins-build.png)
 
+## Mise à l'épreuve
+
+Un pipeline qu'on n'a jamais vu échouer ne prouve rien. J'ai donc provoqué trois échecs volontaires.
+
+| Échec provoqué | Ce qui s'est passé | Build |
+|---|---|---|
+| Réponse de `/health` changée de « ok » à « ko » | `test_health` échoue, l'étape Tests est rouge et les suivantes sont sautées | #4 rouge, #5 vert après correction |
+| Faux fichier `demo_secret.py` avec une fausse clé d'API | Gitleaks la détecte (`generic-api-key`) et bloque à l'étape Secrets | #6 rouge |
+| Adresse du HEALTHCHECK changée en `/healthz` (inexistante) | Le conteneur reste « unhealthy » après 20 contrôles : le pipeline relance l'ancienne image et s'arrête en erreur, l'application continue de répondre | #8 rouge, #9 vert après correction |
+
+![Retour automatique](portail/img/rollback-log.png)
+
 ## Supervision
 
 Prometheus (v2.55.1) interroge Node Exporter toutes les 15 secondes. Grafana affiche ces mesures dans le tableau « Node Exporter Full » (ID 1860). La configuration est dans le dossier `monitoring/`.
@@ -66,7 +78,6 @@ Les ports des outils se règlent dans `portail/config.js`.
 
 ## Limites connues et suite
 
-- Le retour automatique est écrit mais pas encore testé par un échec volontaire.
 - Le `chmod 666` sur `docker.sock` est temporaire.
 - Jenkins et ses plugins doivent être mis à jour.
 - Les mots de passe par défaut de Wazuh sont à changer avant toute exposition publique.
