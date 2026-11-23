@@ -4,6 +4,8 @@ window.PORTAIL = {
   // "local" : cartes cliquables avec état en direct (sur la VM).
   // "public" : site vitrine sur Internet, outils non exposés (mis par le déploiement AWS).
   mode: "local",
+  // Adresse de la VM, utilisee par les cartes en mode "public" : joignable seulement depuis mon reseau.
+  toolsHost: "192.168.230.133",
   host: "",
   outils: [
     { nom: "Jenkins",    port: 8080, proto: "http",  role: "Pipeline CI/CD : tests, secrets, build, scan, déploiement." },
