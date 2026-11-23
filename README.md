@@ -81,7 +81,6 @@ Les ports des outils se règlent dans `portail/config.js`.
 - Le `chmod 666` sur `docker.sock` est temporaire.
 - Jenkins et ses plugins doivent être mis à jour.
 - Les mots de passe par défaut de Wazuh sont à changer avant toute exposition publique.
-- Déploiement sur AWS avec Terraform : à venir.
 
 
 ## Déploiement du portail sur AWS (Terraform)
