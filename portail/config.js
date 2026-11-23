@@ -1,6 +1,9 @@
 // Seul fichier à modifier quand le portail change de machine (VM, puis AWS).
 // "host" vide = même machine que celle qui sert cette page (marche tel quel sur la VM et sur AWS).
 window.PORTAIL = {
+  // "local" : cartes cliquables avec état en direct (sur la VM).
+  // "public" : site vitrine sur Internet, outils non exposés (mis par le déploiement AWS).
+  mode: "local",
   host: "",
   outils: [
     { nom: "Jenkins",    port: 8080, proto: "http",  role: "Pipeline CI/CD : tests, secrets, build, scan, déploiement." },

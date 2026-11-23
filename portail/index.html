@@ -48,7 +48,7 @@
 <section id="outils">
   <div class="tag">// mes outils</div>
   <h2>Accéder aux outils</h2>
-  <p>Chaque carte ouvre l'outil sur la même machine que cette page. Le point vert indique qu'il répond. Les connexions restent protégées par leurs propres identifiants.</p>
+  <p id="tools-intro">Chaque carte ouvre l'outil sur la même machine que cette page. Le point vert indique qu'il répond. Les connexions restent protégées par leurs propres identifiants.</p>
   <div class="tools" id="tools"></div>
 </section>
 
@@ -161,6 +161,16 @@ Finished: SUCCESS</pre></div>
 <script>
 (function(){
   var C=window.PORTAIL, host=C.host||location.hostname||"localhost", box=document.getElementById("tools");
+  if(C.mode==="public"){
+    document.getElementById("tools-intro").textContent="Les outils tournent sur ma machine virtuelle, volontairement non exposés sur Internet : leurs pages de connexion n'ont pas à être visibles de tout le monde. Cette page les présente, et les captures plus bas montrent chacun en fonctionnement.";
+    C.outils.forEach(function(o){
+      var d=document.createElement("div");d.className="card tool";
+      d.innerHTML='<div class="top"><h3></h3><span class="st">en local</span></div><p></p><small>Accessible uniquement depuis ma machine</small>';
+      d.querySelector("h3").textContent=o.nom;d.querySelector("p").textContent=o.role;
+      box.appendChild(d);
+    });
+    return;
+  }
   C.outils.forEach(function(o){
     var port=(o.proto==="https"&&o.port===443)||(o.proto==="http"&&o.port===80)?"":":"+o.port;
     var url=o.proto+"://"+host+port+"/";
