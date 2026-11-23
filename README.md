@@ -86,3 +86,14 @@ Les ports des outils se règlent dans `portail/config.js`.
 ## Technologies
 
 Vagrant, VMware, Ubuntu 22.04, Docker, Jenkins, Python (Flask, pytest), Gitleaks, Trivy, Prometheus, Node Exporter, Grafana, Wazuh.
+
+## Déploiement du portail sur AWS (Terraform)
+
+Le portail du projet est publié sur Internet via AWS, créé entièrement par Terraform (infrastructure as code) : une instance EC2 Ubuntu 22.04, une IP Elastic fixe, un groupe de sécurité et un disque chiffré.
+
+- **Public** : seul le port 80 est ouvert. Le site présente le projet et l'architecture.
+- **Privé** : Jenkins, Grafana, Prometheus, Wazuh et l'application restent sur ma machine virtuelle locale, non exposés sur Internet. Les cartes du portail ouvrent l'outil réel depuis mon réseau ; ailleurs, la page n'est pas accessible, volontairement.
+- **Sécurité** : SSH fermé par défaut, IMDSv2 obligatoire, disque chiffré, aucun secret dans le dépôt (clés AWS fournies par variables d'environnement, `terraform.tfvars` ignoré par Git).
+- **Reproductible** : `terraform apply` crée tout, `terraform destroy` supprime tout. Le site se reconstruit seul au démarrage à partir de ce dépôt.
+
+Dossier : `terraform/`
