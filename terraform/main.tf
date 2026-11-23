@@ -34,28 +34,30 @@ data "aws_vpc" "default" {
 }
 
 locals {
-  # Ports des outils : Portail 80, Jenkins 8080, Grafana 3000, Prometheus 9090, Application 5000
-  ports_outils = [80, 8080, 3000, 9090, 5000]
-  ports_ouverts = concat(
-    local.ports_outils,
-    var.wazuh_ouvert ? [443] : [],
-    var.ssh_public_key != "" ? [22] : []
-  )
+  ssh_actif = var.ssh_public_key != "" && length(var.allowed_cidrs) > 0
 }
 
-# Pare-feu : uniquement les adresses IP de l'equipe. Les ports internes de Wazuh
-# (9200, 55000, 1514, 1515) et Node Exporter (9100) ne sont jamais ouverts.
+# Pare-feu : seul le site (HTTP, port 80) est public.
+# Jenkins, Grafana, Prometheus et Wazuh ne tournent pas ici : ils restent en local.
 resource "aws_security_group" "plateforme" {
   name_prefix = "plateforme-devsecops-"
-  description = "Outils ouverts aux IP de l equipe uniquement"
+  description = "Site vitrine public, SSH restreint"
   vpc_id      = data.aws_vpc.default.id
 
+  ingress {
+    description = "Site vitrine public"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   dynamic "ingress" {
-    for_each = toset(local.ports_ouverts)
+    for_each = local.ssh_actif ? [22] : []
     content {
-      description = "Acces equipe port ${ingress.value}"
-      from_port   = ingress.value
-      to_port     = ingress.value
+      description = "SSH administration"
+      from_port   = 22
+      to_port     = 22
       protocol    = "tcp"
       cidr_blocks = var.allowed_cidrs
     }
@@ -87,8 +89,7 @@ resource "aws_instance" "plateforme" {
   key_name               = var.ssh_public_key != "" ? aws_key_pair.admin[0].key_name : null
 
   user_data = templatefile("${path.module}/user_data.sh.tftpl", {
-    repo_url         = var.repo_url
-    grafana_password = var.grafana_admin_password
+    repo_url = var.repo_url
   })
   user_data_replace_on_change = true
 
